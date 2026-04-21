@@ -2898,6 +2898,7 @@ const translations = {
       INDIVIDUAL_PLAN_DESCRIPTION: "Custom plan",
       INDIVIDUAL_PLAN: "Custom plan",
       BILLED_MONTHLY: "Billed monthly",
+      BILLED_YEARLY: "Billed yearly",
 
       PLAN_FEATURE_UNLIMITED_USERS: "Unlimited users",
       PLAN_FEATURE_ALL_ADVANCED_FEATURES: "All advanced platform features",
@@ -6012,6 +6013,8 @@ const translations = {
       INDIVIDUAL_PLAN_DESCRIPTION: "Individueller Plan",
       INDIVIDUAL_PLAN: "Individueller Plan",
       BILLED_MONTHLY: "Monatlich abgerechnet",
+       BILLED_YEARLY: "Jährlich abgerechnet",
+
 
       PLAN_FEATURE_UNLIMITED_USERS: "Unbegrenzte Benutzer",
       PLAN_FEATURE_ALL_ADVANCED_FEATURES:

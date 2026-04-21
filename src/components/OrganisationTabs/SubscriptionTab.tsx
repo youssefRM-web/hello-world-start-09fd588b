@@ -68,7 +68,7 @@ const SubscriptionTab = () => {
   const isTrial = subscriptionStatus?.status === "trial";
 
   // Determine if this customer has individual plans
-  const activeIndividualPlans = individualPlans.filter((p) => p.status === "active");
+  const activeIndividualPlans = individualPlans.filter((p) => p.isActive);
   const purchasedIndividualPlan = individualPlans.find((p) => p.purchasedAt);
   const hasIndividualPlans = activeIndividualPlans.length > 0 || !!purchasedIndividualPlan;
 
@@ -86,7 +86,7 @@ const SubscriptionTab = () => {
         description: t("organisation.downgradeSuccessDesc")
           .replace("{plan}", data.newPlan || downgradeModal.plan.name)
           .replace("{date}", data.nextBillingDate ? format(new Date(data.nextBillingDate), "dd.MM.yyyy") : ""),
-          variant: "success"
+        variant: "success"
       });
       setDowngradeModal({ open: false, plan: null });
       refetch();
@@ -124,10 +124,10 @@ const SubscriptionTab = () => {
 
   const handleRequestCustomPlan = async () => {
     if (!organizationId) return;
-    
+
     const { planId, planName } = enterpriseModal;
     setIsRequesting(planId);
-    
+
     await executeRequest(
       () =>
         apiService.post(`${endpoints.plans}/request-custom`, {
@@ -179,7 +179,7 @@ const SubscriptionTab = () => {
         title: t("organisation.subscriptionExpired"),
         description: event.detail?.message || t("organisation.subscriptionExpiredDesc"),
         variant: "destructive",
-        duration: 10000, 
+        duration: 10000,
       });
     };
 
@@ -211,7 +211,7 @@ const SubscriptionTab = () => {
         <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              {t("organisation.yourPlan") || "Your Plan"}
+              {t("plan.yourPlan") || "Your Plan"}
             </h2>
             <p className="text-muted-foreground">
               {t("organisation.activePlanDesc") || "Your current active subscription plan."}
@@ -224,24 +224,32 @@ const SubscriptionTab = () => {
                 <Check className="w-6 h-6 text-primary" />
               </div>
               <CardTitle className="text-2xl">
-                {purchasedIndividualPlan.billingCycle === "monthly"
-                  ? (t("organisation.monthlyPlan") || "Monthly Plan")
-                  : (t("organisation.yearlyPlan") || "Yearly Plan")}
+                {purchasedIndividualPlan.nameKey
+                  ? t(purchasedIndividualPlan.nameKey) || purchasedIndividualPlan.name
+                  : purchasedIndividualPlan.name ||
+                  (purchasedIndividualPlan.billingCycle === "monthly"
+                    ? (t("plan.monthlyPlan") || "Monthly Plan")
+                    : (t("plan.yearlyPlan") || "Yearly Plan"))}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
                 <span className="text-4xl font-bold text-foreground">
-                  €{purchasedIndividualPlan.displayPrice}
+                  €{purchasedIndividualPlan.monthlyDisplayPrice}
                 </span>
                 <span className="text-muted-foreground ml-1">
                   /{t("plan.monthly") || "month"}
                 </span>
                 {purchasedIndividualPlan.billingCycle === "yearly" && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    {t("organisation.billedYearly") || "Billed yearly"}: €
-                    {(purchasedIndividualPlan.displayPrice * 12).toLocaleString()}
-                    /{t("organisation.year") || "year"}
+                    {t(purchasedIndividualPlan.billingTextKey || "BILLED_YEARLY") || (t("plan.billedYearly") || "Billed yearly")}: €
+                    {(purchasedIndividualPlan.monthlyDisplayPrice * 12).toLocaleString()}
+                    /{t("plan.year") || "year"}
+                  </p>
+                )}
+                {purchasedIndividualPlan.billingCycle === "monthly" && purchasedIndividualPlan.billingTextKey && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t(purchasedIndividualPlan.billingTextKey)}
                   </p>
                 )}
               </div>
@@ -315,10 +323,10 @@ const SubscriptionTab = () => {
       <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            {t("organisation.yourIndividualPlans") || "Your Individual Plans"}
+            {t("plan.INDIVIDUAL_PLAN_DESCRIPTION") || "Your Individual Plans"}
           </h2>
           <p className="text-muted-foreground">
-            {t("organisation.choosePlanDesc") || "Choose the plan that works best for you. Prices are shown as monthly amounts for easy comparison."}
+            {t("plan.INDIVIDUAL_PLAN_DESCRIPTION") || "Choose the plan that works best for you. Prices are shown as monthly amounts for easy comparison."}
           </p>
         </div>
 
@@ -330,59 +338,60 @@ const SubscriptionTab = () => {
             >
               <CardHeader className="pb-6">
                 <CardTitle className="text-2xl font-bold text-foreground">
-                  {plan.billingCycle === "monthly"
-                    ? (t("organisation.monthlyPlan") || "Monthly Plan")
-                    : (t("organisation.yearlyPlan") || "Yearly Plan")}
+                  {plan.name ||
+                    (plan.billingCycle === "monthly"
+                      ? (t("organisation.monthlyPlan") || "Monthly Plan")
+                      : (t("organisation.yearlyPlan") || "Yearly Plan"))}
                 </CardTitle>
+                {plan.description && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {plan.description}
+                  </p>
+                )}
 
                 <div className="mt-4">
                   <span className="text-4xl font-bold text-foreground">
-                    €{plan.displayPrice}
+                    €{plan.monthlyDisplayPrice}
                   </span>
                   <span className="text-muted-foreground ml-1">
-                    /{t("plan.monthly") || "month"}
+                    /{t("plan.BILLED_MONTHLY") || "month"}
                   </span>
                 </div>
 
                 {plan.billingCycle === "yearly" && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    {t("organisation.billedYearly") || "Billed yearly"}: €
-                    {(plan.displayPrice * 12).toLocaleString()}/{t("organisation.year") || "year"}
+                    {(t("plan.BILLED_YEARLY") || "Billed yearly")}: €
+                    {(plan.monthlyDisplayPrice * 12).toLocaleString()}
                   </p>
                 )}
-                {plan.billingCycle === "monthly" && (
+                {/* {plan.billingCycle === "monthly" && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    {t("organisation.billedMonthly") || "Billed monthly"}
+                    {t(plan.billingTextKey || "BILLED_MONTHLY") || (t("plan.billedMonthly") || "Billed monthly")}
                   </p>
-                )}
+                )} */}
               </CardHeader>
 
               <CardContent className="pt-0 flex flex-col flex-1">
-                <ul className="space-y-3 mb-8 flex-1">
-                  <li className="flex items-center text-foreground">
-                    <Building2 className="w-5 h-5 text-primary mr-3 flex-shrink-0" />
-                    <span className="text-sm">
-                      {t("organisation.upToBuildings") || "Up to"} {plan.maxBuildings} {t("organisation.buildings") || "buildings"}
-                    </span>
-                  </li>
-                  <li className="flex items-center text-foreground">
-                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span className="text-sm">
-                      {t("organisation.fullFunctionality") || "Full functionality included"}
-                    </span>
-                  </li>
+                <ul className="space-y-4 mb-8 flex-1">
+                  {(plan?.featuresKeys).map((feature, i) => (
+                    <li key={i} className={`flex items-center`}>
+                      <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                      <span className="text-sm">
+                        {plan?.featuresKeys && plan?.featuresKeys.length > 0 ? t(`plan.${feature}`) : feature}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
-
                 <div className="mt-auto">
                   <Button
                     className="w-full text-lg font-semibold rounded-xl transition-all bg-primary hover:bg-primary/90 text-primary-foreground"
                     size="lg"
                     onClick={() => {
                       // Redirect to Mollie payment
-                      window.location.href = `/api/payment/individual/subscribe?planId=${plan._id}&organizationId=${organizationId}`;
+                      window.location.href = `/payment/process`;
                     }}
                   >
-                    {t("organisation.subscribe") || "Subscribe"}
+                    {t("organisation.choosePlan") || "Subscribe"}
                   </Button>
                 </div>
               </CardContent>
@@ -403,7 +412,7 @@ const SubscriptionTab = () => {
     (isTrialExpired || !isTrial);
 
   if (hasNoActiveSubscription) {
-    return <ContactSalesCard  isExpired={isTrialExpired}/>;
+    return <ContactSalesCard isExpired={isTrialExpired} />;
   }
 
   // ─── GENERIC PLANS VIEW (existing behavior) ─────────────────────────────
@@ -415,36 +424,36 @@ const SubscriptionTab = () => {
       </div>
     );
   }
-  
+
   return (
     <>
-    <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {showExpiredMessage && (
-        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-          <div className="flex items-start gap-3">
-            <Ban className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-destructive mb-1">
-                {t("organisation.subscriptionExpired")}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t("organisation.subscriptionExpiredDesc")}
-              </p>
+      <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        {showExpiredMessage && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Ban className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-destructive mb-1">
+                  {t("organisation.subscriptionExpired")}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t("organisation.subscriptionExpiredDesc")}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExpiredMessage(false)}
+                className="flex-shrink-0"
+              >
+                {t("organisation.dismiss")}
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowExpiredMessage(false)}
-              className="flex-shrink-0"
-            >
-              {t("organisation.dismiss")}
-            </Button>
           </div>
-        </div>
-      )}
-      
-      <div className={`grid gap-6 md:gap-8 max-w-6xl mx-auto ${isTrial ? 'grid-cols-1 max-w-md' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
-        {plans?.filter((plan) => plan.isActive)?.filter((plan) => isTrial ? plan.type === "enterprise" : true)?.map((plan) => {
+        )}
+
+        <div className={`grid gap-6 md:gap-8 max-w-6xl mx-auto ${isTrial ? 'grid-cols-1 max-w-md' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
+          {plans?.filter((plan) => plan.isActive)?.filter((plan) => isTrial ? plan.type === "enterprise" : true)?.map((plan) => {
             const isCurrent = organization?.currentPlan === plan._id;
             const isEnterprise = plan.type === "enterprise";
 
@@ -460,17 +469,16 @@ const SubscriptionTab = () => {
               plan.maxBuildings &&
               activeBuildingCount > plan.maxBuildings;
             const isDisabled = exceedsBuildingLimit && !isEnterprise;
-            
+
             const isCustomPlan = plan.price === -1;
 
             return (
               <Card
                 key={plan._id}
-                className={`relative hover:scale-105 transition-all duration-300 flex flex-col border ${
-                  isCurrent
-                    ? 'border-primary shadow-lg shadow-primary/20'
-                    : 'border-primary/50 shadow-lg shadow-primary/10 hover:shadow-primary/20'
-                } ${isEnterprise ? 'bg-gradient-to-b from-[hsl(220,70%,12%)] to-[hsl(220,55%,32%)]' : ''}`}
+                className={`relative hover:scale-105 transition-all duration-300 flex flex-col border ${isCurrent
+                  ? 'border-primary shadow-lg shadow-primary/20'
+                  : 'border-primary/50 shadow-lg shadow-primary/10 hover:shadow-primary/20'
+                  } ${isEnterprise ? 'bg-gradient-to-b from-[hsl(220,70%,12%)] to-[hsl(220,55%,32%)]' : ''}`}
               >
                 {isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
@@ -621,8 +629,8 @@ const SubscriptionTab = () => {
                           !organization?.mollieCustomerId || !organization?.currentPlan
                             ? "process"
                             : isUpgrade
-                            ? "upgrade"
-                            : "process"
+                              ? "upgrade"
+                              : "process"
                         }
                         buttonText={
                           isUpgrade
@@ -646,99 +654,99 @@ const SubscriptionTab = () => {
               </Card>
             );
           })}
+        </div>
+
+        <CancelSubscriptionModal
+          isOpen={cancelModal.isOpen}
+          onClose={() => setCancelModal({ isOpen: false, planName: "" })}
+          onConfirm={confirmCancelSubscription}
+          planName={cancelModal.planName}
+          isLoading={isCancelling}
+        />
+
+        <Dialog open={enterpriseModal.open} onOpenChange={(open) => { if (!open) setEnterpriseModal({ open: false, planId: "", planName: "" }); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("organisation.enterpriseRequest")}</DialogTitle>
+              <DialogDescription>{t("organisation.enterpriseRequestDesc")}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label>{t("organisation.numberOfBuildings")} *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder={t("organisation.numberOfBuildingsPlaceholder")}
+                  value={enterpriseForm.buildingCount}
+                  onChange={(e) => setEnterpriseForm(prev => ({ ...prev, buildingCount: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("organisation.additionalInfo")}</Label>
+                <Textarea
+                  placeholder={t("organisation.additionalInfoPlaceholder")}
+                  value={enterpriseForm.additionalInfo}
+                  onChange={(e) => setEnterpriseForm(prev => ({ ...prev, additionalInfo: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEnterpriseModal({ open: false, planId: "", planName: "" })}>
+                {t("organisation.cancel")}
+              </Button>
+              <Button
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+                onClick={handleRequestCustomPlan}
+                disabled={!enterpriseForm.buildingCount || isRequesting === enterpriseModal.planId}
+              >
+                {isRequesting === enterpriseModal.planId ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t("organisation.sending")}
+                  </>
+                ) : (
+                  t("organisation.sendRequest")
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Downgrade Confirmation Dialog */}
+        <Dialog open={downgradeModal.open} onOpenChange={(open) => !isDowngrading && setDowngradeModal({ open, plan: open ? downgradeModal.plan : null })}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("organisation.downgradeTitle")}</DialogTitle>
+              <DialogDescription>
+                {t("organisation.downgradeDesc")
+                  .replace("{plan}", downgradeModal.plan?.nameKey ? t(`plan.${downgradeModal.plan.nameKey}`) : downgradeModal.plan?.name || "")
+                  .replace("{date}", organization?.nextBillingDate ? format(new Date(organization.nextBillingDate), "dd.MM.yyyy") : "")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground space-y-2">
+              <p>• {t("organisation.downgradeNote1")}</p>
+              <p>• {t("organisation.downgradeNote2")}</p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDowngradeModal({ open: false, plan: null })} disabled={isDowngrading}>
+                {t("organisation.cancel")}
+              </Button>
+              <Button onClick={handleDowngrade} disabled={isDowngrading} variant="destructive">
+                {isDowngrading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t("organisation.processing")}
+                  </>
+                ) : (
+                  t("organisation.confirmDowngrade")
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <CancelSubscriptionModal
-        isOpen={cancelModal.isOpen}
-        onClose={() => setCancelModal({ isOpen: false, planName: "" })}
-        onConfirm={confirmCancelSubscription}
-        planName={cancelModal.planName}
-        isLoading={isCancelling}
-      />
-
-      <Dialog open={enterpriseModal.open} onOpenChange={(open) => { if (!open) setEnterpriseModal({ open: false, planId: "", planName: "" }); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("organisation.enterpriseRequest")}</DialogTitle>
-            <DialogDescription>{t("organisation.enterpriseRequestDesc")}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>{t("organisation.numberOfBuildings")} *</Label>
-              <Input
-                type="number"
-                min="1"
-                placeholder={t("organisation.numberOfBuildingsPlaceholder")}
-                value={enterpriseForm.buildingCount}
-                onChange={(e) => setEnterpriseForm(prev => ({ ...prev, buildingCount: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("organisation.additionalInfo")}</Label>
-              <Textarea
-                placeholder={t("organisation.additionalInfoPlaceholder")}
-                value={enterpriseForm.additionalInfo}
-                onChange={(e) => setEnterpriseForm(prev => ({ ...prev, additionalInfo: e.target.value }))}
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEnterpriseModal({ open: false, planId: "", planName: "" })}>
-              {t("organisation.cancel")}
-            </Button>
-            <Button
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
-              onClick={handleRequestCustomPlan}
-              disabled={!enterpriseForm.buildingCount || isRequesting === enterpriseModal.planId}
-            >
-              {isRequesting === enterpriseModal.planId ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t("organisation.sending")}
-                </>
-              ) : (
-                t("organisation.sendRequest")
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Downgrade Confirmation Dialog */}
-      <Dialog open={downgradeModal.open} onOpenChange={(open) => !isDowngrading && setDowngradeModal({ open, plan: open ? downgradeModal.plan : null })}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("organisation.downgradeTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("organisation.downgradeDesc")
-                .replace("{plan}", downgradeModal.plan?.nameKey ? t(`plan.${downgradeModal.plan.nameKey}`) : downgradeModal.plan?.name || "")
-                .replace("{date}", organization?.nextBillingDate ? format(new Date(organization.nextBillingDate), "dd.MM.yyyy") : "")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground space-y-2">
-            <p>• {t("organisation.downgradeNote1")}</p>
-            <p>• {t("organisation.downgradeNote2")}</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDowngradeModal({ open: false, plan: null })} disabled={isDowngrading}>
-              {t("organisation.cancel")}
-            </Button>
-            <Button onClick={handleDowngrade} disabled={isDowngrading} variant="destructive">
-              {isDowngrading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t("organisation.processing")}
-                </>
-              ) : (
-                t("organisation.confirmDowngrade")
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  
     </>
   );
 };
