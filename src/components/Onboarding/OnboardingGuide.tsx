@@ -121,18 +121,20 @@ const OnboardingGuide: React.FC = () => {
       }
     };
 
-    const attach = () => {
+    const attach = (allowPoll = true) => {
       if (cancelled) return;
       let el: Element | null = document.querySelector(primarySelector);
       if (!(el instanceof HTMLElement) && fallbackSelector) {
         el = document.querySelector(fallbackSelector);
       }
       if (!(el instanceof HTMLElement)) {
-        frame = window.requestAnimationFrame(attach);
+        if (allowPoll) {
+          frame = window.requestAnimationFrame(() => attach(true));
+        }
         return;
       }
       if (highlightedRef.current === el) {
-        positionTooltip();
+        // Same element already highlighted — do nothing (prevents loop).
         return;
       }
       detachHighlight();
