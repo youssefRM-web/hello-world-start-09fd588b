@@ -74,7 +74,7 @@ const GettingStarted: React.FC = () => {
   return (
     <div className="min-h-full bg-background">
       {/* Hero Section */}
-      <div className="border-b border-border">
+      <div>
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left: Text */}
@@ -236,7 +236,7 @@ const GettingStarted: React.FC = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => window.open('https://calendly.com/mendigo', '_blank')}
+                onClick={() => window.open('https://zeeg.me/mendigo/onboarding', '_blank')}
               >
                 {t('gettingStarted.bookCall')}
               </Button>

@@ -10,6 +10,7 @@ import ContactSalesCard from "../OrganisationTabs/ContactSalesCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CreateOrganizationOnboardingModal from "../modals/CreateOrganizationOnboardingModal";
 import { useOnboarding } from "@/contexts/OnboardingContext";
+import OnboardingGuide from "@/components/Onboarding/OnboardingGuide";
 
 
 interface AppLayoutProps {
