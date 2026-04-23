@@ -128,7 +128,7 @@ export function BuildingSelector() {
             </div>
             <DropdownMenuSeparator className='shrink-0' />
             <DropdownMenuItem asChild className='gap-2 p-2 shrink-0'>
-              <Link to='/dashboard/building'>
+              <Link to='/dashboard/building' data-onboarding-target='create-building-step1'>
                 <div className='bg-background flex size-6 items-center justify-center rounded-md border'>
                   <Building2 className='h-4 w-4' />
                 </div>

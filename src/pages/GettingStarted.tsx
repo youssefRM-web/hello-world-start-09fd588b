@@ -21,7 +21,8 @@ const GettingStarted: React.FC = () => {
 
   const handleStartGuide = (stepId: OnboardingStep) => {
     startGuide(stepId);
-    navigate(STEP_ROUTES[stepId]);
+    // Do NOT navigate — the guide highlights the sidebar nav item first (step 1).
+    // When the user clicks it, they'll naturally land on the target page (step 2).
   };
 
   const handleCompleteStep = () => {
@@ -32,7 +33,6 @@ const GettingStarted: React.FC = () => {
 
   const handleRestartGuide = (stepId: OnboardingStep) => {
     startGuide(stepId);
-    navigate(STEP_ROUTES[stepId]);
   };
 
   const stepTranslations: Record<OnboardingStep, { title: string; description: string }> = {
@@ -74,7 +74,7 @@ const GettingStarted: React.FC = () => {
   return (
     <div className="min-h-full bg-background">
       {/* Hero Section */}
-      <div className="border-b border-border">
+      <div>
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left: Text */}
@@ -236,7 +236,7 @@ const GettingStarted: React.FC = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => window.open('https://calendly.com/mendigo', '_blank')}
+                onClick={() => window.open('https://zeeg.me/mendigo/onboarding', '_blank')}
               >
                 {t('gettingStarted.bookCall')}
               </Button>
