@@ -57,7 +57,9 @@ const OnboardingGuide: React.FC = () => {
     const guideKey = GUIDE_KEYS[activeGuide];
     const subIndex = Math.min(Math.max(guideSubStep, 0), TOTAL_SUB_STEPS - 1);
     const stepNum = subIndex + 1;
-    const selector = `[data-onboarding-target="${activeGuide}-step${stepNum}"]`;
+    const primarySelector = `[data-onboarding-target="${activeGuide}-step${stepNum}"]`;
+    // For step 3 (modal), fall back to any open Radix dialog if no explicit target.
+    const fallbackSelector = stepNum === 3 ? '[role="dialog"]' : null;
 
     let frame = 0;
     let cancelled = false;
@@ -122,9 +124,11 @@ const OnboardingGuide: React.FC = () => {
 
     const attach = () => {
       if (cancelled) return;
-      const el = document.querySelector(selector);
+      let el: Element | null = document.querySelector(primarySelector);
+      if (!(el instanceof HTMLElement) && fallbackSelector) {
+        el = document.querySelector(fallbackSelector);
+      }
       if (!(el instanceof HTMLElement)) {
-        // retry on next frame until element appears
         frame = window.requestAnimationFrame(attach);
         return;
       }
