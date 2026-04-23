@@ -170,16 +170,22 @@ const OnboardingGuide: React.FC = () => {
       cleanupTooltip();
     }
 
-    attach();
+    attach(true);
 
     // Watch DOM changes (e.g., modal opening) to reattach if needed.
+    let observerScheduled = false;
     const observer = new MutationObserver(() => {
-      if (cancelled) return;
-      if (highlightedRef.current && !document.body.contains(highlightedRef.current)) {
-        highlightedRef.current = null;
-        cleanupTooltip();
-      }
-      attach();
+      if (cancelled || observerScheduled) return;
+      observerScheduled = true;
+      requestAnimationFrame(() => {
+        observerScheduled = false;
+        if (cancelled) return;
+        if (highlightedRef.current && !document.body.contains(highlightedRef.current)) {
+          detachHighlight();
+          cleanupTooltip();
+        }
+        attach(false);
+      });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
