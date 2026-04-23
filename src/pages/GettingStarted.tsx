@@ -21,7 +21,8 @@ const GettingStarted: React.FC = () => {
 
   const handleStartGuide = (stepId: OnboardingStep) => {
     startGuide(stepId);
-    navigate(STEP_ROUTES[stepId]);
+    // Do NOT navigate — the guide highlights the sidebar nav item first (step 1).
+    // When the user clicks it, they'll naturally land on the target page (step 2).
   };
 
   const handleCompleteStep = () => {
@@ -32,7 +33,6 @@ const GettingStarted: React.FC = () => {
 
   const handleRestartGuide = (stepId: OnboardingStep) => {
     startGuide(stepId);
-    navigate(STEP_ROUTES[stepId]);
   };
 
   const stepTranslations: Record<OnboardingStep, { title: string; description: string }> = {
