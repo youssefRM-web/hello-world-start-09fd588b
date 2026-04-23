@@ -160,7 +160,9 @@ const OnboardingGuide: React.FC = () => {
       el.classList.add('onboarding-highlight');
       el.addEventListener('click', handleClick);
       try {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (stepNum !== 3) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } catch {
         /* noop */
       }
