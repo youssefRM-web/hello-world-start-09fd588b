@@ -49,8 +49,10 @@ const OnboardingGuide: React.FC = () => {
   }, [activeGuide, guideSubStep, location.pathname, setGuideSubStep]);
 
   useEffect(() => {
+    let frame = 0;
+    let cancelled = false;
+
     if (!activeGuide) {
-      cleanup();
       return;
     }
 
@@ -60,9 +62,6 @@ const OnboardingGuide: React.FC = () => {
     const primarySelector = `[data-onboarding-target="${activeGuide}-step${stepNum}"]`;
     // For step 3 (modal), fall back to any open Radix dialog if no explicit target.
     const fallbackSelector = stepNum === 3 ? '[role="dialog"]' : null;
-
-    let frame = 0;
-    let cancelled = false;
 
     const titleText = t(`guide.${guideKey}.step${stepNum}.title`);
     const descText = t(`guide.${guideKey}.step${stepNum}.desc`);
