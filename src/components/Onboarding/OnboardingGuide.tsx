@@ -121,18 +121,20 @@ const OnboardingGuide: React.FC = () => {
       }
     };
 
-    const attach = () => {
+    const attach = (allowPoll = true) => {
       if (cancelled) return;
       let el: Element | null = document.querySelector(primarySelector);
       if (!(el instanceof HTMLElement) && fallbackSelector) {
         el = document.querySelector(fallbackSelector);
       }
       if (!(el instanceof HTMLElement)) {
-        frame = window.requestAnimationFrame(attach);
+        if (allowPoll) {
+          frame = window.requestAnimationFrame(() => attach(true));
+        }
         return;
       }
       if (highlightedRef.current === el) {
-        positionTooltip();
+        // Same element already highlighted — do nothing (prevents loop).
         return;
       }
       detachHighlight();
@@ -168,16 +170,22 @@ const OnboardingGuide: React.FC = () => {
       cleanupTooltip();
     }
 
-    attach();
+    attach(true);
 
     // Watch DOM changes (e.g., modal opening) to reattach if needed.
+    let observerScheduled = false;
     const observer = new MutationObserver(() => {
-      if (cancelled) return;
-      if (highlightedRef.current && !document.body.contains(highlightedRef.current)) {
-        highlightedRef.current = null;
-        cleanupTooltip();
-      }
-      attach();
+      if (cancelled || observerScheduled) return;
+      observerScheduled = true;
+      requestAnimationFrame(() => {
+        observerScheduled = false;
+        if (cancelled) return;
+        if (highlightedRef.current && !document.body.contains(highlightedRef.current)) {
+          detachHighlight();
+          cleanupTooltip();
+        }
+        attach(false);
+      });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
