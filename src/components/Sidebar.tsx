@@ -606,6 +606,7 @@ export function Sidebar({
                 <div className="p-3 border-t border-border shrink-0">
                     <Link
                       to="/dashboard/building"
+                      data-onboarding-target="create-building-step1"
                       className="text-blue-600 bg-blue-50 rounded-md text-sm font-medium py-2 px-3 block text-center transition-all duration-200 hover:text-blue-700"
                       onClick={() => setIsBuildingsOpen(false)}
                     >
