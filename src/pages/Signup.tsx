@@ -23,7 +23,7 @@ import { AuroraBackground } from "@/components/ui/aurora-background";
 import axios from "axios";
 import { apiUrl } from "@/services/api";
 import { motion } from "framer-motion";
-import logo from "../assets/homepage/Mendigo_Logo.png";
+import logo from "@/components/media/Mendigo_Logo.png";
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
