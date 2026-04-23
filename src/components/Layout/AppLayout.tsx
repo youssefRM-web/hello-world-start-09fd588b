@@ -134,6 +134,9 @@ const AppLayoutInner = ({ children }: AppLayoutProps) => {
           />
         )}
       </div>
+
+      {/* Global multi-step onboarding guide overlay */}
+      <OnboardingGuide />
     </div>
   );
 };
