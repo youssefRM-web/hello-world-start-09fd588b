@@ -73,7 +73,25 @@ const OnboardingGuide: React.FC = () => {
       const rect = el.getBoundingClientRect();
       const tipRect = tip.getBoundingClientRect();
       const margin = 12;
-      // Prefer below; if not enough space, place above
+
+      // Step 3 (modal) → place to the right of the modal (or left if no room).
+      if (stepNum === 3) {
+        let left = rect.right + window.scrollX + margin;
+        let placement: 'right' | 'left' = 'right';
+        if (left + tipRect.width + 8 > window.innerWidth) {
+          left = rect.left + window.scrollX - tipRect.width - margin;
+          placement = 'left';
+        }
+        left = Math.max(8, left);
+        let top = rect.top + window.scrollY + rect.height / 2 - tipRect.height / 2;
+        top = Math.max(8 + window.scrollY, Math.min(top, window.scrollY + window.innerHeight - tipRect.height - 8));
+        tip.style.top = `${top}px`;
+        tip.style.left = `${left}px`;
+        tip.dataset.placement = placement;
+        return;
+      }
+
+      // Default: prefer below; if not enough space, place above
       let top = rect.bottom + window.scrollY + margin;
       const placeAbove = rect.bottom + tipRect.height + margin > window.innerHeight;
       if (placeAbove) {
@@ -142,7 +160,9 @@ const OnboardingGuide: React.FC = () => {
       el.classList.add('onboarding-highlight');
       el.addEventListener('click', handleClick);
       try {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (stepNum !== 3) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } catch {
         /* noop */
       }
