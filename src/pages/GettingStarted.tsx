@@ -9,15 +9,15 @@ import { Rocket, Check, Play, HelpCircle, RotateCcw } from 'lucide-react';
 const GettingStarted: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { steps, completedCount, totalSteps, activeGuide, startGuide, completeStep, skipAllSteps, isOnboardingVisible } = useOnboarding();
+  const { steps, completedCount, totalSteps, activeGuide, startGuide, completeStep, skipAllSteps, isOnboardingVisible, isOnboardingStatusLoading } = useOnboarding();
 
   const progressPercent = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0;
 
   useEffect(() => {
-    if (!isOnboardingVisible) {
+    if (!isOnboardingStatusLoading && !isOnboardingVisible) {
       navigate('/dashboard', { replace: true });
     }
-  }, [isOnboardingVisible, navigate]);
+  }, [isOnboardingStatusLoading, isOnboardingVisible, navigate]);
 
   const handleStartGuide = (stepId: OnboardingStep) => {
     startGuide(stepId);
@@ -65,6 +65,11 @@ const GettingStarted: React.FC = () => {
       description: t('gettingStarted.steps.recurringTask.description'),
     },
   };
+
+  // Avoid flashing the onboarding UI while we don't yet know onBoardingDone status
+  if (isOnboardingStatusLoading || !isOnboardingVisible) {
+    return <div className="min-h-full bg-background" />;
+  }
 
   return (
     <div className="min-h-full bg-background">

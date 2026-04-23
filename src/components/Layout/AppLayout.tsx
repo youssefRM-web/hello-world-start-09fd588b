@@ -38,7 +38,7 @@ const AppLayoutInner = ({ children }: AppLayoutProps) => {
   const [showManagerExpiredCard, setShowManagerExpiredCard] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const { data: currentUser } = useCurrentUserQuery();
-  const { isOnboardingVisible } = useOnboarding();
+  const { isOnboardingVisible, isOnboardingStatusLoading } = useOnboarding();
   
   const isExpired = subscriptionStatus?.status === "expired";
 
@@ -57,9 +57,10 @@ const AppLayoutInner = ({ children }: AppLayoutProps) => {
     !currentUser.inviteId &&
     !isAdminUser;
 
-  // Auto-redirect new users to Getting Started page
+  // Auto-redirect new users to Getting Started page (only after status is known)
   useEffect(() => {
     if (
+      !isOnboardingStatusLoading &&
       isOnboardingVisible &&
       currentUser &&
       currentUser.Organization_id &&
@@ -68,7 +69,7 @@ const AppLayoutInner = ({ children }: AppLayoutProps) => {
     ) {
       navigate("/dashboard/getting-started", { replace: true });
     }
-  }, [isOnboardingVisible, currentUser, isAdminUser, location.pathname, navigate]);
+  }, [isOnboardingStatusLoading, isOnboardingVisible, currentUser, isAdminUser, location.pathname, navigate]);
 
   React.useEffect(() => {
     if (isExpired) {
